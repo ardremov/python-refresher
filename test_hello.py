@@ -1,5 +1,6 @@
 import unittest
 import hello
+import bank
 
 
 class TestHello(unittest.TestCase):
@@ -62,6 +63,35 @@ class TestHello(unittest.TestCase):
     def test_cot(self):
         self.assertEqual(hello.cot(0), float("inf"))
         self.assertEqual(hello.cot(1), 0.6420926159343306)
+
+    def test_bank(self):
+        # create object
+        test = Bank("Root", 1234, 100)
+        user = Bank("User", 123456, 15)
+
+        # check withdraw method
+        with self.assertRaises(test.withdraw(101)):
+            ValueError("You do not have the funds to make this transaction.")
+        self.assertNotEqual(test.withdraw(101), -1)
+        self.assertEqual(test.withdraw(50), 50)
+
+        # check deposit method
+        self.assertEqual(test.deposit(50), 100)
+        self.assertNotEqual(test.deposit(0), 0)
+
+        @patch("sys.stdout", new_callable=io.StringIO)
+        def test_depo(mock_stdout):
+            test.deposit(50)
+            assert (
+                mock_stdout.getvalue()
+                == f"You have successfully deposited {50} into your account."
+            )
+
+        # check printBal method
+        @patch("sys.stdout", new_callable=io.StringIO)
+        def test_printBal(mock_stdout):
+            user.printBal()
+            assert mock_stdout.getvalue() == f"Your current balance is {15}."
 
 
 if __name__ == "__main__":
