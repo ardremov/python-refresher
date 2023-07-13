@@ -1,6 +1,6 @@
 import unittest
-import Hello.hello as hello
-import Hello.bank as bank
+import hello
+import bank
 
 
 class TestHello(unittest.TestCase):
@@ -66,8 +66,8 @@ class TestHello(unittest.TestCase):
 
     def test_bank(self):
         # create object
-        test = Bank("Root", 1234, 100)
-        user = Bank("User", 123456, 15)
+        test = bank("Root", 1234, 100)
+        user = bank("User", 123456, 15)
 
         # check withdraw method
         with self.assertRaises(test.withdraw(101)):

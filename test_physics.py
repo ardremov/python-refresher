@@ -1,5 +1,5 @@
 import unittest
-import physics as physics
+import physics
 
 class TestPhysics(unittest.TestCase):
     def test_calc_buoyancy(self):
