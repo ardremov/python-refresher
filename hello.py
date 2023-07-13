@@ -1,5 +1,5 @@
 import numpy as np
-import hello
+import Hello.hello as hello
 
 
 def hello():

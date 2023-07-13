@@ -1,6 +1,6 @@
 import unittest
-import hello
-import bank
+import Hello.hello as hello
+import Hello.bank as bank
 
 
 class TestHello(unittest.TestCase):
