@@ -25,6 +25,12 @@ class TestPhysics(unittest.TestCase):
         self.assertNotEqual(physics.calculate_pressure(100), 101.3)
         self.assertEqual(physics.calculate_pressure(-100), 981101.3)
 
+    def test_calculate_acceleration(self):
+        self.assertAlmostEqual(physics)
+        self.assertAlmostEqual(physics)
+        self.assertAlmostEqual(physics)
+
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -60,11 +60,11 @@ def calculate_angular_acceleration(tau, I):
 
 '''
 Problem #6
-Given the force magnitude in newtons, the force direction in degrees, and the radius in meters,
+Given the force magnitude in newtons, the force direction in radians, and the radius in meters,
 this function will return torque in newton-meters.
 '''
 def calculate_torque(F_magnitude, F_direction, r):
-    return r * F_magnitude * np.sin(F_direction * np.pi / 180)
+    return r * F_magnitude * np.sin(F_direction)
 
 '''
 Problem #7
@@ -75,7 +75,7 @@ def calculate_moment_of_inertia(m, r):
     return m * r * r
 
 '''
-(needed for problem 8)
+(needed for problems 8 and 9)
 supplemental methods that calculate rotation matrix and rov rotation matrix given respective angles
 '''
 def get_rotation_matrix(theta):
@@ -110,8 +110,10 @@ The function returns the acceleration of the AUV in meters per second squared.
 '''
 def calculate_auv_acceleration(F_magnitude, F_angle, mass = 100, volume = 0.1, thruster_distance = 0.5):
     rov_rot_mat = get_rov_rotation_matrix(F_angle) # alpha
-    thrusters = np.array([[F_magnitude], [F_magnitude], [F_magnitude], [F_magnitude]])
+    thrusters = np.array([[F_magnitude], [F_magnitude], [-F_magnitude], [-F_magnitude]])
     force_matrix = np.matmul(rov_rot_mat, thrusters)
+    if mass <= 0:
+        raise ValueError("Mass cannot be negative or zero.")
     a = force_matrix / mass
     return a
 
@@ -126,9 +128,48 @@ inertia (optional): the moment of inertia of the AUV in kgm^2. The default value
 thruster_distance(optional): the distance from the center of mass of the AUV to the thruster in meters. The default value is 0.5m.
 The function returns the angular acceleration of the AUV in radians per second squared.
 '''
-#def calculate_auv_angular_acceleration():
-
+def calculate_auv_angular_acceleration(F_magnitude, F_angle, inertia = 1, thruster_distance = 0.5):
+    torque = calculate_torque(F_magnitude, F_angle, thruster_distance)
+    if inertia <= 0:
+        raise ValueError("Inertia cannot be negative or zero.")
+    a = torque / inertia
+    return a
 
 '''
 Problem #9
+a)
+Given: 
+T = np.ndarray of magnitudes of force vectors.
+alpha = angle of thrusters in radians.
+theta = angle AUV in radians.
+mass (optional) = mass of AUV in kg. default 100 kg.
 '''
+def calculate_auv2_acceleration(T, alpha, theta, mass = 100):
+    rov_rot_mat = get_rov_rotation_matrix(alpha)
+    rot_mat = get_rov_rotation_matrix(theta)
+    force_matrix = np.matmul(rot_mat, rov_rot_mat, T)
+    if mass <= 0:
+        raise ValueError("Mass cannot be negative or zero.")
+    a = force_matrix / mass
+    return a
+
+'''
+Problem #9
+b)
+Given: 
+T = np.ndarray of magnitudes of force vectors
+alpha = angle of thrusters in radians
+L = the distance from the center of mass of the AUV to the thrusters in meters.
+l = the distance from the center of mass of the AUV to the thrusters in meters.
+inertia (optional) = moment of inertia of AUV in kgm^2. default 100 kgm^2.
+'''
+def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
+    forces = np.matmul(get_rov_rotation_matrix(alpha), T)
+    thruster_distance = np.sqrt(L * L + l * l) # pythag
+    a = np.array([forces[0] / inertia, forces[1]/ inertia])
+    F_magnitude = np.sqrt(a[0] * 1[0] + a[1] * a[1])
+    torque = calculate_torque(F_magnitude, alpha, thruster_distance)
+    if inertia <= 0:
+        raise ValueError("Inertia cannot be negative or zero.")
+    a = torque / inertia
+    return a
