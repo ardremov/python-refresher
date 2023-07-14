@@ -108,12 +108,12 @@ volume (optional): the volume of the AUV in cubic meters. The default value is 0
 thruster_distance(optional): the distance from the center of mass of the AUV to the thruster in meters. The default value is 0.5m.
 The function returns the acceleration of the AUV in meters per second squared.
 '''
-def calculate_auv_acceleration(F_magnitude, F_angle, mass = 100, volume = 0.1, thruster_distance = 0.5):
+def calculate_auv_acceleration(F_magnitude, F_angle, mass = 100):
+    if mass <= 0:
+        raise ValueError("Mass cannot be negative or zero.")
     rov_rot_mat = get_rov_rotation_matrix(F_angle) # alpha
     thrusters = np.array([[F_magnitude], [F_magnitude], [-F_magnitude], [-F_magnitude]])
     force_matrix = np.matmul(rov_rot_mat, thrusters)
-    if mass <= 0:
-        raise ValueError("Mass cannot be negative or zero.")
     a = force_matrix / mass
     return a
 
@@ -129,9 +129,9 @@ thruster_distance(optional): the distance from the center of mass of the AUV to 
 The function returns the angular acceleration of the AUV in radians per second squared.
 '''
 def calculate_auv_angular_acceleration(F_magnitude, F_angle, inertia = 1, thruster_distance = 0.5):
-    torque = calculate_torque(F_magnitude, F_angle, thruster_distance)
     if inertia <= 0:
         raise ValueError("Inertia cannot be negative or zero.")
+    torque = calculate_torque(F_magnitude, F_angle, thruster_distance)
     a = torque / inertia
     return a
 
@@ -145,11 +145,11 @@ theta = angle AUV in radians.
 mass (optional) = mass of AUV in kg. default 100 kg.
 '''
 def calculate_auv2_acceleration(T, alpha, theta, mass = 100):
+    if mass <= 0:
+        raise ValueError("Mass cannot be negative or zero.")
     rov_rot_mat = get_rov_rotation_matrix(alpha)
     rot_mat = get_rov_rotation_matrix(theta)
     force_matrix = np.matmul(rot_mat, rov_rot_mat, T)
-    if mass <= 0:
-        raise ValueError("Mass cannot be negative or zero.")
     a = force_matrix / mass
     return a
 
