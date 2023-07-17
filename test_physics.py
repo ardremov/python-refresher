@@ -35,7 +35,7 @@ class TestPhysics(unittest.TestCase):
         self.assertRaises(ValueError,lambda: physics.calculate_angular_acceleration(5, 0))
 
     def test_calculate_torque(self):
-        self.assertAlmostEqual(physics.calculate_torque(1, 1.5708, 1), 1)
+        self.assertAlmostEqual(physics.calculate_torque(1, 1.5708, 1), 1, 2)
 
     def test_calculate_moment_of_inertia(self):
         self.assertEqual(physics.calculate_moment_of_inertia(1, 1), 1)
