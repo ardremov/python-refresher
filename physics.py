@@ -174,3 +174,90 @@ def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
         raise ValueError("Inertia cannot be negative or zero.")
     a = torque / inertia
     return a
+
+def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, 
+                         t_final = 10, x0 = 0, y0 = 0, theta0 = 0): 
+    '''
+    Problem #10
+    a)
+            Takes in:
+    T = np.ndarray of magnitudes of forces applied in newtons
+    alpha = angle of thrusters in radians
+    L = (long side) distance from center of mass of auv to thrusters in meters
+    l = (short side) distance from center of mass of auv to thrusters in meters
+    inertia = the moment of inertia in kgm^2, default = 100
+    dt = time step of the simulation (derivative) in seconds, default = 0.1
+    t_final = final time of simulation in seconds, default = 10
+    x0 = initial x position in meters, default = 0
+    y0 = initial y position in meters, default = 0
+    theta0 = intial angle of AUV in radians, default = 0
+            Returns:
+        a tuple containing the following information in order:
+    t = np.ndarray of the time steps of the simulation in seconds
+    x = np.ndarray of the x positions of the AUV in meters
+    y = np.ndarray of the y positions of the AUV in meters
+    theta = np.ndarray of the angles of the AUV in radians
+    v = np.ndarray of velocities of AUV in m/s
+    omega = np.ndarray of angular velocites in radians per second
+    a = np.ndarray of the accelerations of the AUV in m/s^2
+    '''
+    if T or L or l or mass or t_final <= 0:
+        raise ValueError("Negative or zero arguments.")
+    t = np.arange(0, t_final, dt)
+    x = np.zeros_like(t)
+    y = np.zeros_like(t)
+    theta = np.zeros_like(t)
+    v = np.zeros_like(t)
+    omega = np.zeros_like(t)
+    a = np.zeros_like(t)
+
+    angular_a = np.zeros_like(t)
+
+    for i in (1, t_final):
+        # calc a
+        a[i] = a[i - 1] + calculate_auv2_acceleration(T, alpha, theta, mass)
+        # calc v
+        v[i] = v[i - 1] + a[i] * dt
+        # calc x pos
+        x[i] = x0 + x[i - 1] + v[i - 1] * dt
+        # calc y pos
+        y[i] = y0 + y[i - 1] + v[i - 1] * dt
+        # calc angular a
+        angular_a = angular_a[i - 1] + calculate_auv2_angular_acceleration(T, L, l, inertia)
+        # calc omega
+        omega[i] = omega[i - 1] + angular_a[i - 1] * dt
+        # calc theta
+        theta[i] = theta0 + theta[i - 1] + omega[i - 1] * dt
+        pass
+
+    return (t, x, y, theta, v, omega, a)
+
+import matplotlib.pyplot as plt
+
+def plot_auv2_motion(t, x, y, theta, v, omega, a):
+    '''
+    Problem #10
+    b)
+        Takes in:
+    t = np.ndarray of the time steps of the simulation in seconds
+    x = np.ndarray of the x positions of the AUV in meters
+    y = np.ndarray of the y positions of the AUV in meters
+    theta = np.ndarray of the angles of the AUV in radians
+    v = np.ndarray of velocities of AUV in m/s
+    omega = np.ndarray of angular velocites in radians per second
+    a = np.ndarray of the accelerations of the AUV in m/s^2
+        Plots:
+    - motion of AUV in 2d plane.
+    - there is no unittest test function.
+    - try out in simulation.ipynb
+    '''
+    plt.plot(t, x, label="X position")
+    plt.plot(t, y, label="Y position")
+    plt.plot(t, theta, label="Angles")
+    plt.plot(t, v, label="Velocity")
+    plt.plot(t, omega, label="Angular velocity")
+    plt.plot(t, a, label="Acceleration")
+    plt.xlabel("Time (s)")
+    plt.ylabel("X position (m), Y position (m), Angles (rad), Velocity (m/s), Angular velocity (rad/s), Acceleration (m/s^2)")
+    plt.legend()
+    plt.show()

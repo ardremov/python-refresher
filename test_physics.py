@@ -54,5 +54,10 @@ class TestPhysics(unittest.TestCase):
     def test_calculate_auv2_angular_acceleration(self):
         self.assertRaises(ValueError,lambda: physics.calculate_auv2_angular_acceleration(0, 0, 0, 0))
 
+    def test_simulate_auv2_motion(self):
+        self.assertRaises(ValueError, lambda: physics.simulate_auv2_motion(0, 0, 0, 0))
+
+    # no test for plot_auv2_motion
+
 if __name__ == "__main__":
     unittest.main()
