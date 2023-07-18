@@ -149,10 +149,9 @@ def calculate_auv2_acceleration(T, alpha, theta, mass = 100):
     if mass <= 0:
         raise ValueError("Mass cannot be negative or zero.")
     rov_rot_mat = get_rov_rotation_matrix(alpha)
-    rot_mat = get_rov_rotation_matrix(theta)
-    force_matrix = np.matmul(rot_mat, rov_rot_mat, T)
-    a = force_matrix / mass
-    return a
+    force_matrix = np.matmul(rov_rot_mat, T)
+    a = np.array([force_matrix[0] / mass, force_matrix[1] / mass])
+    return np.matmul(get_rotation_matrix(theta), a)
 
 def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
     '''
@@ -165,15 +164,17 @@ def calculate_auv2_angular_acceleration(T, alpha, L, l, inertia = 100):
     l = the distance from the center of mass of the AUV to the thrusters in meters.
     inertia (optional) = moment of inertia of AUV in kgm^2. default 100 kgm^2.
     ''' 
-    forces = np.matmul(get_rov_rotation_matrix(alpha), T)
-    thruster_distance = np.sqrt(L * L + l * l) # pythag
-    a = np.array([forces[0] / inertia, forces[1]/ inertia])
-    F_magnitude = np.sqrt(a[0] * 1[0] + a[1] * a[1])
-    torque = calculate_torque(F_magnitude, alpha, thruster_distance)
     if inertia <= 0:
         raise ValueError("Inertia cannot be negative or zero.")
-    a = torque / inertia
-    return a
+    beta = np.arctan(L / l)
+    translation_array = np.array([1, -1, 1, -1]).T
+    f = np.dot(translation_array, T)
+    return (
+        np.sin(alpha + beta)
+        * np.sqrt(np.power(l, 2) + np.power(L, 2))
+        * f
+        / inertia
+    )
 
 def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1, 
                          t_final = 10, x0 = 0, y0 = 0, theta0 = 0): 
@@ -201,33 +202,40 @@ def simulate_auv2_motion(T, alpha, L, l, mass = 100, inertia = 100, dt = 0.1,
     omega = np.ndarray of angular velocites in radians per second
     a = np.ndarray of the accelerations of the AUV in m/s^2
     '''
-    if T or L or l or mass or t_final <= 0:
-        raise ValueError("Negative or zero arguments.")
+    # if T or L or l or mass or t_final <= 0:
+    #     raise ValueError("Negative or zero arguments.")
+    
     t = np.arange(0, t_final, dt)
-    x = np.zeros_like(t)
-    y = np.zeros_like(t)
-    theta = np.zeros_like(t)
-    v = np.zeros_like(t)
-    omega = np.zeros_like(t)
-    a = np.zeros_like(t)
 
-    angular_a = np.zeros_like(t)
+    x = np.zeros_like(t)
+    x[0] = x0
+    y = np.zeros_like(t)
+    y[0] = y0
+    theta = np.zeros_like(t)
+    theta[0] = theta0
+
+    omega = np.zeros_like(t)    
+    v = np.zeros(len(t), 2)
+    a = np.zeros(len(t), 2)
+
+    angular_a = calculate_auv2_angular_acceleration(T, alpha, L, l)
 
     for i in (1, t_final):
-        # calc a
-        a[i] = a[i - 1] + calculate_auv2_acceleration(T, alpha, theta, mass)
-        # calc v
-        v[i] = v[i - 1] + a[i] * dt
-        # calc x pos
-        x[i] = x0 + x[i - 1] + v[i - 1] * dt
-        # calc y pos
-        y[i] = y0 + y[i - 1] + v[i - 1] * dt
-        # calc angular a
-        angular_a = angular_a[i - 1] + calculate_auv2_angular_acceleration(T, L, l, inertia)
         # calc omega
-        omega[i] = omega[i - 1] + angular_a[i - 1] * dt
+        omega[i] = omega[i - 1] + angular_a * dt
         # calc theta
-        theta[i] = theta0 + theta[i - 1] + omega[i - 1] * dt
+        theta[i] = theta[i - 1] + omega[i] * dt
+        # calc a
+        temp_a = calculate_auv2_acceleration(T, alpha, theta[i - 1])
+        a[i][0] = temp_a[0]
+        a[i][1] = temp_a[1]
+        # calc v
+        v[i][0] = v[i - 1][0] + a[i][0] * dt
+        v[i][1] = v[i - 1][1] + a[i][1] * dt
+        # calc x pos
+        x[i] = x[i - 1] + v[i][0] * dt
+        # calc y pos
+        y[i] = y[i - 1] + v[i][0] * dt
         pass
 
     return (t, x, y, theta, v, omega, a)
@@ -261,3 +269,13 @@ def plot_auv2_motion(t, x, y, theta, v, omega, a):
     plt.ylabel("X position (m), Y position (m), Angles (rad), Velocity (m/s), Angular velocity (rad/s), Acceleration (m/s^2)")
     plt.legend()
     plt.show()
+
+# print(
+#     calculate_auv2_acceleration(
+#         np.array([10, 10, 5, 3]), np.pi / 4, np.pi / 4, mass=100
+#     )
+# )
+
+# print(
+#     calculate_auv2_angular_acceleration(np.array([10, 10, 5, 3]), np.pi / 4, 3, 4)
+# )
